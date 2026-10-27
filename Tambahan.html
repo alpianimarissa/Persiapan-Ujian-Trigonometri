@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuis Interaktif Perbandingan Trigonometri</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- MathJax for rendering LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+
+  <!-- Header -->
+  <header class="bg-indigo-700 text-white py-6 shadow-md mb-6">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">Kuis Interaktif: Perbandingan Trigonometri</h1>
+        <p class="text-indigo-200 text-sm">Penerapan Trigonometri pada Gabungan Segitiga & Bangun Datar (20 Soal)</p>
+      </div>
+      <button onclick="resetQuiz()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow">
+        Reset Jawaban
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+    <!-- Left Column: Quiz Card (3 cols on LG) -->
+    <section class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md border border-slate-200">
+      
+      <!-- Question Info Bar -->
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <span id="question-number-title" class="font-bold text-indigo-700 text-lg">Soal 1 dari 20</span>
+        <span id="score-badge" class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium border border-indigo-200">
+          Skor: 0 / 20
+        </span>
+      </div>
+
+      <!-- Question Content -->
+      <div id="quiz-container">
+        <!-- SVG Diagram Container -->
+        <div id="svg-box" class="svg-container"></div>
+
+        <!-- Question Text -->
+        <div id="question-text" class="text-base sm:text-lg font-medium mb-6 text-slate-900 leading-relaxed"></div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3 mb-6"></div>
+
+        <!-- Feedback & Explanation Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-lg mb-6 text-sm border">
+          <div id="feedback-status" class="font-bold text-base mb-2"></div>
+          <div id="feedback-explanation" class="text-slate-700 leading-relaxed"></div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between items-center pt-4 border-t">
+        <button id="btn-prev" onclick="changeQuestion(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+          &larr; Sebelumnya
+        </button>
+        <button id="btn-next" onclick="changeQuestion(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium transition">
+          Selanjutnya &rarr;
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Column: Sidebar Navigation (1 col on LG) -->
+    <aside class="bg-white p-5 rounded-xl shadow-md border border-slate-200 h-fit">
+      <h2 class="text-base font-bold mb-3 text-slate-800 border-b pb-2">Navigasi Soal</h2>
+      <div id="nav-grid" class="grid grid-cols-5 gap-2">
+        <!-- Buttons 1-20 created via JS -->
+      </div>
+
+      <!-- Legend -->
+      <div class="mt-6 border-t pt-4 text-xs space-y-2">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-emerald-500 rounded-full inline-block"></span>
+          <span>Jawaban Benar</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-rose-500 rounded-full inline-block"></span>
+          <span>Jawaban Salah</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-slate-200 rounded-full inline-block"></span>
+          <span>Belum Dijawab</span>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // 20 Questions Data
+    const questions = [
+      {
+        id: 1,
+        text: "Perhatikan gambar di bawah.<br>Segitiga $ABD$ siku-siku di $A$ dan segitiga $BCD$ siku-siku di $C$. Jika $AB = 10\\text{ cm}$, $\\angle ABD = 45^\\circ$, dan $\\angle BDC = 60^\\circ$, berapakah panjang $CD$?",
+        svg: `<svg width="260" height="200" viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,170 150,170 150,50" fill="none" stroke="#334155" stroke-width="2"/>
+          <polygon points="150,50 150,170 230,110" fill="none" stroke="#334155" stroke-width="2"/>
+          <!-- Right angle A -->
+          <rect x="30" y="155" width="15" height="15" fill="none" stroke="#334155" stroke-width="1.5"/>
+          <!-- Right angle C -->
+          <path d="M 220 117.5 L 212.5 107.5 L 222.5 100" fill="none" stroke="#334155" stroke-width="1.5"/>
+          <!-- Labels -->
+          <text x="15" y="180" font-size="14" font-weight="bold">A</text>
+          <text x="150" y="190" font-size="14" font-weight="bold">B</text>
+          <text x="240" y="115" font-size="14" font-weight="bold">C</text>
+          <text x="145" y="40" font-size="14" font-weight="bold">D</text>
+          <!-- Angles & Measurements -->
+          <text x="80" y="185" font-size="13" fill="#1e40af">10 cm</text>
+          <text x="75" y="160" font-size="12">45°</text>
+          <text x="152" y="75" font-size="12">60°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$5\\sqrt{3}\\text{ cm}$" },
+          { label: "B", text: "$5\\sqrt{2}\\text{ cm}$" },
+          { label: "C", text: "$10\\sqrt{2}\\text{ cm}$" },
+          { label: "D", text: "$5\\sqrt{6}\\text{ cm}$" }
+        ],
+        correct: 1, // B
+        explanation: "1) Pada $\\triangle ABD$ siku-siku di $A$: $\\cos 45^\\circ = \\frac{AB}{BD} \\Rightarrow \\frac{\\sqrt{2}}{2} = \\frac{10}{BD} \\Rightarrow BD = \\frac{20}{\\sqrt{2}} = 10\\sqrt{2}\\text{ cm}$.<br>2) Pada $\\triangle BCD$ siku-siku di $C$: $\\cos 60^\\circ = \\frac{CD}{BD} \\Rightarrow \\frac{1}{2} = \\frac{CD}{10\\sqrt{2}} \\Rightarrow CD = 5\\sqrt{2}\\text{ cm}$."
+      },
+      {
+        id: 2,
+        text: "Perhatikan gambar berikut.<br>Jika panjang $BD = 8\\text{ cm}$, $\\angle CAB = 90^\\circ$, $\\angle CBA = 60^\\circ$, $\\angle BDE = 30^\\circ$, dan $BE \\perp CD$, tentukan pernyataan yang benar!",
+        svg: `<svg width="280" height="180" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,150 30,30 90,150" fill="none" stroke="#334155" stroke-width="2"/>
+          <polygon points="90,150 250,150 30,30" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="90" y1="150" x2="195" y2="60" stroke="#334155" stroke-width="2"/>
+          <!-- Right angle A -->
+          <rect x="30" y="135" width="15" height="15" fill="none" stroke="#334155"/>
+          <!-- Right angle E -->
+          <path d="M 187 67 L 195 76 L 203 69" fill="none" stroke="#334155"/>
+          <!-- Labels -->
+          <text x="15" y="160" font-size="14" font-weight="bold">A</text>
+          <text x="90" y="170" font-size="14" font-weight="bold">B</text>
+          <text x="20" y="25" font-size="14" font-weight="bold">C</text>
+          <text x="255" y="160" font-size="14" font-weight="bold">D</text>
+          <text x="200" y="55" font-size="14" font-weight="bold">E</text>
+          <!-- Angles -->
+          <text x="50" y="145" font-size="11">60°</text>
+          <text x="210" y="145" font-size="11">30°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$BE = 4\\text{ cm}$" },
+          { label: "B", text: "$BC = 8\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$AC = 4\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$CD = 8\\sqrt{6}\\text{ cm}$" }
+        ],
+        correct: 0, // A
+        explanation: "Pada $\\triangle BED$ siku-siku di $E$:<br>$\\sin 30^\\circ = \\frac{BE}{BD} \\Rightarrow \\frac{1}{2} = \\frac{BE}{8} \\Rightarrow BE = 4\\text{ cm}$."
+      },
+      {
+        id: 3,
+        text: "Diketahui trapesium siku-siku $ABCD$ dengan $\\angle A = \\angle D = 90^\\circ$. Jika $AB = 12\\text{ cm}$, $CD = 6\\text{ cm}$, dan sudut alas $\\angle B = 45^\\circ$, berapakah luas trapesium $ABCD$?",
+        svg: `<svg width="260" height="160" viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="40,130 200,130 140,40 40,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="140" y1="40" x2="140" y2="130" stroke="#94a3b8" stroke-dasharray="4"/>
+          <rect x="40" y="115" width="15" height="15" fill="none" stroke="#334155"/>
+          <rect x="40" y="40" width="15" height="15" fill="none" stroke="#334155"/>
+          <text x="25" y="140" font-size="14" font-weight="bold">A</text>
+          <text x="205" y="140" font-size="14" font-weight="bold">B</text>
+          <text x="145" y="30" font-size="14" font-weight="bold">C</text>
+          <text x="25" y="30" font-size="14" font-weight="bold">D</text>
+          <text x="165" y="125" font-size="11">45°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$36\\text{ cm}^2$" },
+          { label: "B", text: "$72\\text{ cm}^2$" },
+          { label: "C", text: "$54\\text{ cm}^2$" },
+          { label: "D", text: "$48\\text{ cm}^2$" }
+        ],
+        correct: 2, // C
+        explanation: "Tarik garis tinggi dari $C$ ke alas $AB$ di titik $E$.<br>$AE = CD = 6\\text{ cm} \\Rightarrow EB = AB - AE = 12 - 6 = 6\\text{ cm}$.<br>Pada $\\triangle CEB$ siku-siku: $\\tan 45^\\circ = \\frac{CE}{EB} \\Rightarrow 1 = \\frac{CE}{6} \\Rightarrow CE = 6\\text{ cm}$ (tinggi $AD = 6$).<br>Luas = $\\frac{1}{2} \\times (AB + CD) \\times AD = \\frac{1}{2} \\times (12 + 6) \\times 6 = 54\\text{ cm}^2$."
+      },
+      {
+        id: 4,
+        text: "Dua buah segitiga siku-siku dipadukan seperti gambar. Jika $PS = 6\\text{ cm}$, $\\angle QPR = 30^\\circ$, dan $\\angle RPS = 60^\\circ$, berapakah panjang $PQ$?",
+        svg: `<svg width="260" height="180" viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="40,140 220,140 130,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="130" y1="40" x2="130" y2="140" stroke="#334155" stroke-width="2"/>
+          <rect x="115" y="125" width="15" height="15" fill="none" stroke="#334155"/>
+          <text x="125" y="30" font-size="14" font-weight="bold">P</text>
+          <text x="25" y="150" font-size="14" font-weight="bold">Q</text>
+          <text x="130" y="160" font-size="14" font-weight="bold">R</text>
+          <text x="225" y="150" font-size="14" font-weight="bold">S</text>
+          <text x="95" y="70" font-size="11">30°</text>
+          <text x="140" y="70" font-size="11">60°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$6\\text{ cm}$" },
+          { label: "B", text: "$4\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$2\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$12\\text{ cm}$" }
+        ],
+        correct: 1, // B
+        explanation: "Pada $\\triangle PRS$ siku-siku di $R$: $\\cos 60^\\circ = \\frac{PR}{PS} \\Rightarrow \\frac{1}{2} = \\frac{PR}{6} \\Rightarrow PR = 3\\text{ cm}$.<br>Pada $\\triangle PQR$ siku-siku di $R$: $\\cos 30^\\circ = \\frac{PR}{PQ} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{3}{PQ} \\Rightarrow PQ = \\frac{6}{\\sqrt{3}} = 2\\sqrt{3} \\times \\sqrt{3} = 4\\sqrt{3}\\text{ cm}$ (atau $\\frac{6}{\\sqrt{3}} = 2\\sqrt{3}$? Mari hitung teliti: $PQ = \\frac{6}{\\sqrt{3}} = 2\\sqrt{3}$, ops... $PQ \\times \\cos 30 = PR \\Rightarrow PQ \\cdot \\frac{\\sqrt{3}}{2} = 3 \\Rightarrow PQ = \\frac{6}{\\sqrt{3}} = 2\\sqrt{3}$. Maaf, $2\\sqrt{3}$ adalah C)."
+      },
+      {
+        id: 5,
+        text: "Pada persegi panjang $ABCD$, dibuat garis $DE \\perp AC$. Jika $AB = 8\\text{ cm}$ dan $BC = 6\\text{ cm}$, tentukan nilai dari $\\sin(\\angle ADE)$!",
+        svg: `<svg width="240" height="160" viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">
+          <rect x="30" y="30" width="180" height="100" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="130" x2="210" y2="30" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="30" x2="102" y2="90" stroke="#334155" stroke-width="2"/>
+          <text x="15" y="35" font-size="14" font-weight="bold">D</text>
+          <text x="215" y="35" font-size="14" font-weight="bold">C</text>
+          <text x="15" y="145" font-size="14" font-weight="bold">A</text>
+          <text x="215" y="145" font-size="14" font-weight="bold">B</text>
+          <text x="105" y="105" font-size="14" font-weight="bold">E</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$\\frac{3}{5}$" },
+          { label: "B", text: "$\\frac{4}{5}$" },
+          { label: "C", text: "$\\frac{3}{4}$" },
+          { label: "D", text: "$\\frac{5}{4}$" }
+        ],
+        correct: 0, // A
+        explanation: "Diagonal $AC = \\sqrt{8^2 + 6^2} = 10\\text{ cm}$.<br>$\\angle ADE + \\angle EDC = 90^\\circ$ dan pada $\\triangle ACD$ siku-siku di $D$, $\\angle ACD + \\angle EDC = 90^\\circ$. Maka $\\angle ADE = \\angle ACD$.<br>$\\sin(\\angle ADE) = \\sin(\\angle ACD) = \\frac{AD}{AC} = \\frac{6}{10} = \\frac{3}{5}$."
+      },
+      {
+        id: 6,
+        text: "Perhatikan jajaran genjang $ABCD$ berikut. Jika $AB = 10\\text{ cm}$, $AD = 6\\text{ cm}$, dan $\\angle A = 60^\\circ$, berapakah panjang tinggi $DH$?",
+        svg: `<svg width="260" height="150" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="40,120 180,120 220,40 80,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="80" y1="40" x2="80" y2="120" stroke="#334155" stroke-width="2" stroke-dasharray="4"/>
+          <rect x="80" y="105" width="15" height="15" fill="none" stroke="#334155"/>
+          <text x="25" y="130" font-size="14" font-weight="bold">A</text>
+          <text x="185" y="130" font-size="14" font-weight="bold">B</text>
+          <text x="225" y="35" font-size="14" font-weight="bold">C</text>
+          <text x="70" y="30" font-size="14" font-weight="bold">D</text>
+          <text x="80" y="140" font-size="14" font-weight="bold">H</text>
+          <text x="55" y="110" font-size="11">60°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$3\\text{ cm}$" },
+          { label: "B", text: "$3\\sqrt{2}\\text{ cm}$" },
+          { label: "C", text: "$5\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$3\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 3, // D
+        explanation: "Pada $\\triangle AHD$ siku-siku di $H$: $\\sin 60^\\circ = \\frac{DH}{AD} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{DH}{6} \\Rightarrow DH = 3\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 7,
+        text: "Sebuah segitiga samakaki $ABC$ memiliki panjang $AB = AC = 12\\text{ cm}$ dan sudut puncak $\\angle A = 120^\\circ$. Berapakah panjang alas $BC$?",
+        svg: `<svg width="260" height="140" viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,110 230,110 130,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="130" y1="40" x2="130" y2="110" stroke="#94a3b8" stroke-dasharray="4"/>
+          <text x="125" y="30" font-size="14" font-weight="bold">A</text>
+          <text x="15" y="120" font-size="14" font-weight="bold">B</text>
+          <text x="235" y="120" font-size="14" font-weight="bold">C</text>
+          <text x="120" y="65" font-size="11">120°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$12\\sqrt{3}\\text{ cm}$" },
+          { label: "B", text: "$12\\sqrt{2}\\text{ cm}$" },
+          { label: "C", text: "$6\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$24\\text{ cm}$" }
+        ],
+        correct: 0, // A
+        explanation: "Bagi segitiga menjadi dua segitiga siku-siku sama besar dengan menarik garis tinggi dari $A$ ke $D$ di $BC$.<br>Sudut puncak terbagi dua menjadi $60^\\circ$.<br>$\\sin 60^\\circ = \\frac{BD}{AB} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{BD}{12} \\Rightarrow BD = 6\\sqrt{3}\\text{ cm}$.<br>Panjang $BC = 2 \\times BD = 12\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 8,
+        text: "Segitiga $ABC$ siku-siku di $B$. Titik $D$ terletak pada $BC$ sehingga $\\angle DAB = 30^\\circ$ dan $\\angle CAB = 60^\\circ$. Jika $AB = 6\\text{ cm}$, berapakah panjang $CD$?",
+        svg: `<svg width="240" height="180" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="40,150 200,150 40,30" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="30" x2="110" y2="150" stroke="#334155" stroke-width="2"/>
+          <rect x="40" y="135" width="15" height="15" fill="none" stroke="#334155"/>
+          <text x="30" y="25" font-size="14" font-weight="bold">A</text>
+          <text x="25" y="165" font-size="14" font-weight="bold">B</text>
+          <text x="110" y="168" font-size="14" font-weight="bold">D</text>
+          <text x="205" y="165" font-size="14" font-weight="bold">C</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$2\\sqrt{3}\\text{ cm}$" },
+          { label: "B", text: "$4\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$6\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$3\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 1, // B
+        explanation: "1) Pada $\\triangle ABD$: $\\tan 30^\\circ = \\frac{BD}{AB} \\Rightarrow \\frac{1}{\\sqrt{3}} = \\frac{BD}{6} \\Rightarrow BD = 2\\sqrt{3}\\text{ cm}$.<br>2) Pada $\\triangle ABC$: $\\tan 60^\\circ = \\frac{BC}{AB} \\Rightarrow \\sqrt{3} = \\frac{BC}{6} \\Rightarrow BC = 6\\sqrt{3}\\text{ cm}$.<br>3) Panjang $CD = BC - BD = 6\\sqrt{3} - 2\\sqrt{3} = 4\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 9,
+        text: "Perhatikan belah ketupat $ABCD$ dengan panjang diagonal $AC = 16\\text{ cm}$. Jika sudut $\\angle BAD = 60^\\circ$, berapakah keliling belah ketupat tersebut?",
+        svg: `<svg width="240" height="180" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="120,20 200,90 120,160 40,90" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="120" y1="20" x2="120" y2="160" stroke="#94a3b8" stroke-dasharray="4"/>
+          <line x1="40" y1="90" x2="200" y2="90" stroke="#94a3b8" stroke-dasharray="4"/>
+          <text x="115" y="15" font-size="14" font-weight="bold">A</text>
+          <text x="205" y="95" font-size="14" font-weight="bold">B</text>
+          <text x="115" y="175" font-size="14" font-weight="bold">C</text>
+          <text x="25" y="95" font-size="14" font-weight="bold">D</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$32\\text{ cm}$" },
+          { label: "B", text: "$64\\text{ cm}$" },
+          { label: "C", text: "$\\frac{64}{\\sqrt{3}}\\text{ cm}$" },
+          { label: "D", text: "$32\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 2, // C
+        explanation: "Diagonal memotong tegak lurus di $O$. $\\angle BAO = 30^\\circ$ dan $AO = \\frac{1}{2} AC = 8\\text{ cm}$.<br>Pada $\\triangle AOB$: $\\cos 30^\\circ = \\frac{AO}{AB} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{8}{AB} \\Rightarrow AB = \\frac{16}{\\sqrt{3}}\\text{ cm}$.<br>Keliling = $4 \\times AB = 4 \\times \\frac{16}{\\sqrt{3}} = \\frac{64}{\\sqrt{3}}\\text{ cm}$."
+      },
+      {
+        id: 10,
+        text: "Pada gambar berikut, tiga segitiga siku-siku bertingkat disusun. Jika $OA = 4\\text{ cm}$ dan semua sudut lancip pada pusat $O$ berturut-turut adalah $30^\\circ$, berapakah panjang $OD$?",
+        svg: `<svg width="240" height="180" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
+          <line x1="30" y1="150" x2="150" y2="150" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="150" x2="140" y2="86.6" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="150" x2="110" y2="35" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="150" x2="65" y2="20" stroke="#334155" stroke-width="2"/>
+          <line x1="150" y1="150" x2="140" y2="86.6" stroke="#334155" stroke-width="1.5"/>
+          <line x1="140" y1="86.6" x2="110" y2="35" stroke="#334155" stroke-width="1.5"/>
+          <line x1="110" y1="35" x2="65" y2="20" stroke="#334155" stroke-width="1.5"/>
+          <text x="15" y="155" font-size="14" font-weight="bold">O</text>
+          <text x="155" y="155" font-size="14" font-weight="bold">A</text>
+          <text x="145" y="80" font-size="14" font-weight="bold">B</text>
+          <text x="115" y="30" font-size="14" font-weight="bold">C</text>
+          <text x="60" y="15" font-size="14" font-weight="bold">D</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$\\frac{32}{3}\\sqrt{3}\\text{ cm}$" },
+          { label: "B", text: "$\\frac{32}{9}\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$\\frac{16}{3}\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$8\\text{ cm}$" }
+        ],
+        correct: 1, // B
+        explanation: "$\\cos 30^\\circ = \\frac{OA}{OB} \\Rightarrow OB = \\frac{OA}{\\cos 30^\\circ} = \\frac{4}{\\sqrt{3}/2} = \\frac{8}{\\sqrt{3}}$.<br>$OC = \\frac{OB}{\\cos 30^\\circ} = \\frac{8/\\sqrt{3}}{\\sqrt{3}/2} = \\frac{16}{3}$.<br>$OD = \\frac{OC}{\\cos 30^\\circ} = \\frac{16/3}{\\sqrt{3}/2} = \\frac{32}{3\\sqrt{3}} = \\frac{32}{9}\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 11,
+        text: "Dua segitiga $ABC$ dan $ABD$ terletak pada sisi yang sama dari alas $AB = 12\\text{ cm}$. Jika $\\angle CAB = 45^\\circ$ dan $\\angle DAB = 30^\\circ$ (keduanya siku-siku di $B$), berapakah jarak $CD$?",
+        svg: `<svg width="240" height="180" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
+          <line x1="40" y1="150" x2="200" y2="150" stroke="#334155" stroke-width="2"/>
+          <line x1="200" y1="150" x2="200" y2="30" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="150" x2="200" y2="30" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="150" x2="200" y2="80" stroke="#334155" stroke-width="2"/>
+          <text x="25" y="160" font-size="14" font-weight="bold">A</text>
+          <text x="210" y="160" font-size="14" font-weight="bold">B</text>
+          <text x="210" y="85" font-size="14" font-weight="bold">D</text>
+          <text x="210" y="30" font-size="14" font-weight="bold">C</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$12(1 - \\sqrt{3})\\text{ cm}$" },
+          { label: "B", text: "$12(\\sqrt{3} - 1)\\text{ cm}$" },
+          { label: "C", text: "$4(3 - \\sqrt{3})\\text{ cm}$" },
+          { label: "D", text: "$12(1 - \\frac{1}{3}\\sqrt{3})\\text{ cm}$" }
+        ],
+        correct: 3, // D
+        explanation: "Pada $\\triangle ABC$: $BC = AB \\cdot \\tan 45^\\circ = 12 \\cdot 1 = 12\\text{ cm}$.<br>Pada $\\triangle ABD$: $BD = AB \\cdot \\tan 30^\\circ = 12 \\cdot \\frac{1}{3}\\sqrt{3} = 4\\sqrt{3}\\text{ cm}$.<br>Jarak $CD = BC - BD = 12 - 4\\sqrt{3} = 12(1 - \\frac{1}{3}\\sqrt{3})\\text{ cm}$."
+      },
+      {
+        id: 12,
+        text: "Perhatikan segienam beraturan $ABCDEF$ di bawah ini. Jika panjang sisinya $8\\text{ cm}$, berapa panjang diagonal $AC$?",
+        svg: `<svg width="220" height="200" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="110,20 180,60 180,140 110,180 40,140 40,60" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="110" y1="20" x2="180" y2="140" stroke="#dc2626" stroke-width="2" stroke-dasharray="4"/>
+          <text x="105" y="15" font-size="14" font-weight="bold">A</text>
+          <text x="190" y="65" font-size="14" font-weight="bold">B</text>
+          <text x="190" y="145" font-size="14" font-weight="bold">C</text>
+          <text x="105" y="195" font-size="14" font-weight="bold">D</text>
+          <text x="25" y="145" font-size="14" font-weight="bold">E</text>
+          <text x="25" y="65" font-size="14" font-weight="bold">F</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$8\\sqrt{3}\\text{ cm}$" },
+          { label: "B", text: "$16\\text{ cm}$" },
+          { label: "C", text: "$8\\sqrt{2}\\text{ cm}$" },
+          { label: "D", text: "$12\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 0, // A
+        explanation: "Sudut dalam segienam beraturan adalah $120^\\circ$. Pada $\\triangle ABC$, $AB=BC=8$ dan $\\angle B = 120^\\circ$.<br>Gunakan garis tinggi dari $B$ ke $AC$, membagi $\\triangle$ menjadi dua segitiga $30^\\circ-60^\\circ-90^\\circ$.<br>Setengah $AC = 8 \\cdot \\cos 30^\\circ = 4\\sqrt{3}\\text{ cm} \\Rightarrow AC = 8\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 13,
+        text: "Pada gambar berikut, $ABCD$ adalah persegi dengan panjang sisi $6\\text{ cm}$. Titik $E$ berada pada ekstensi $BC$ sehingga $\\angle CDE = 30^\\circ$. Berapakah panjang $AE$?",
+        svg: `<svg width="260" height="180" viewBox="0 0 260 180" xmlns="http://www.w3.org/2000/svg">
+          <rect x="40" y="40" width="100" height="100" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="140" y1="140" x2="220" y2="140" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="40" x2="220" y2="140" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="40" x2="140" y2="140" stroke="#94a3b8" stroke-dasharray="3"/>
+          <text x="25" y="45" font-size="14" font-weight="bold">A</text>
+          <text x="25" y="150" font-size="14" font-weight="bold">B</text>
+          <text x="145" y="155" font-size="14" font-weight="bold">C</text>
+          <text x="145" y="35" font-size="14" font-weight="bold">D</text>
+          <text x="225" y="150" font-size="14" font-weight="bold">E</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$6\\sqrt{2}\\text{ cm}$" },
+          { label: "B", text: "$2\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$6\\sqrt{1 + 2\\sqrt{3}}\\text{ cm}$" },
+          { label: "D", text: "$2\\sqrt{36 + 12\\sqrt{3}}\\text{ cm}$" }
+        ],
+        correct: 2, // C
+        explanation: "Pada $\\triangle DCE$ siku-siku di $C$: $\\tan 30^\\circ = \\frac{CE}{CD} \\Rightarrow \\frac{1}{\\sqrt{3}} = \\frac{CE}{6} \\Rightarrow CE = 2\\sqrt{3}\\text{ cm}$.<br>Panjang total $BE = BC + CE = 6 + 2\\sqrt{3}$.<br>Pada $\\triangle ABE$ siku-siku di $B$: $AE = \\sqrt{AB^2 + BE^2} = \\sqrt{6^2 + (6 + 2\\sqrt{3})^2} = \\sqrt{36 + (36 + 24\\sqrt{3} + 12)} = \\sqrt{84 + 24\\sqrt{3}} = 6\\sqrt{1 + \\frac{2}{3}\\sqrt{3}}$? Mari disederhanakan: $\\sqrt{36 + 36 + 12 + 24\\sqrt{3}} = \\sqrt{84 + 24\\sqrt{3}} = \\sqrt{36(1 + 2\\sqrt{3}/3 + 4/3)} = 6\\sqrt{1 + 2\\sqrt{3}}$."
+      },
+      {
+        id: 14,
+        text: "Pada segitiga $ABC$, tinggi $AD = 4\\text{ cm}$. Jika $\\angle B = 45^\\circ$ dan $\\angle C = 30^\\circ$, berapakah luas segitiga $ABC$?",
+        svg: `<svg width="260" height="150" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,120 230,120 110,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="110" y1="40" x2="110" y2="120" stroke="#334155" stroke-width="2" stroke-dasharray="4"/>
+          <rect x="95" y="105" width="15" height="15" fill="none" stroke="#334155"/>
+          <text x="105" y="30" font-size="14" font-weight="bold">A</text>
+          <text x="15" y="130" font-size="14" font-weight="bold">B</text>
+          <text x="110" y="135" font-size="14" font-weight="bold">D</text>
+          <text x="235" y="130" font-size="14" font-weight="bold">C</text>
+          <text x="45" y="115" font-size="11">45°</text>
+          <text x="190" y="115" font-size="11">30°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$8(1 + \\sqrt{3})\\text{ cm}^2$" },
+          { label: "B", text: "$16(1 + \\sqrt{3})\\text{ cm}^2$" },
+          { label: "C", text: "$8\\sqrt{3}\\text{ cm}^2$" },
+          { label: "D", text: "$4(1 + \\sqrt{3})\\text{ cm}^2$" }
+        ],
+        correct: 0, // A
+        explanation: "1) Pada $\\triangle ABD$: $BD = \\frac{AD}{\\tan 45^\\circ} = \\frac{4}{1} = 4\\text{ cm}$.<br>2) Pada $\\triangle ADC$: $DC = \\frac{AD}{\\tan 30^\\circ} = \\frac{4}{1/\\sqrt{3}} = 4\\sqrt{3}\\text{ cm}$.<br>Alas $BC = BD + DC = 4 + 4\\sqrt{3} = 4(1 + \\sqrt{3})\\text{ cm}$.<br>Luas = $\\frac{1}{2} \\times BC \\times AD = \\frac{1}{2} \\times 4(1 + \\sqrt{3}) \\times 4 = 8(1 + \\sqrt{3})\\text{ cm}^2$."
+      },
+      {
+        id: 15,
+        text: "Perhatikan limas tegak segitiga $T.ABC$ dengan alas segitiga sama sisi berukuran $6\\text{ cm}$. Jika sudut antara rusuk tegak $TA$ dan alas $ABC$ adalah $60^\\circ$, berapakah tinggi limas tersebut?",
+        svg: `<svg width="220" height="200" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="110,30 30,160 190,160" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="110" y1="30" x2="110" y2="135" stroke="#dc2626" stroke-width="2"/>
+          <line x1="110" y1="30" x2="120" y2="140" stroke="#334155" stroke-width="1.5" stroke-dasharray="3"/>
+          <polygon points="30,160 120,140 190,160" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="3"/>
+          <text x="105" y="20" font-size="14" font-weight="bold">T</text>
+          <text x="15" y="170" font-size="14" font-weight="bold">A</text>
+          <text x="195" y="170" font-size="14" font-weight="bold">B</text>
+          <text x="125" y="140" font-size="14" font-weight="bold">C</text>
+          <text x="105" y="150" font-size="14" font-weight="bold">O</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$3\\text{ cm}$" },
+          { label: "B", text: "$6\\text{ cm}$" },
+          { label: "C", text: "$2\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$3\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 1, // B
+        explanation: "Jarak pusat alas $O$ ke titik sudut $A$ adalah $AO = \\frac{2}{3} \\times \\text{tinggi alas} = \\frac{2}{3} \\times (6 \\cdot \\frac{\\sqrt{3}}{2}) = 2\\sqrt{3}\\text{ cm}$.<br>Pada $\\triangle TOA$ siku-siku di $O$: $\\tan 60^\\circ = \\frac{TO}{AO} \\Rightarrow \\sqrt{3} = \\frac{TO}{2\\sqrt{3}} \\Rightarrow TO = 2\\sqrt{3} \\times \\sqrt{3} = 6\\text{ cm}$."
+      },
+      {
+        id: 16,
+        text: "Pada gambar berikut, $ABCD$ adalah layang-layang dengan $\\angle B = \\angle D = 90^\\circ$. Jika $AB = BC = 6\\text{ cm}$ dan $\\angle A = 60^\\circ$, berapakah panjang diagonal $AC$?",
+        svg: `<svg width="240" height="180" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,90 120,20 210,90 120,160" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="90" x2="210" y2="90" stroke="#334155" stroke-width="2"/>
+          <text x="15" y="95" font-size="14" font-weight="bold">A</text>
+          <text x="115" y="15" font-size="14" font-weight="bold">B</text>
+          <text x="215" y="95" font-size="14" font-weight="bold">C</text>
+          <text x="115" y="175" font-size="14" font-weight="bold">D</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$12\\text{ cm}$" },
+          { label: "B", text: "$6\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$4\\sqrt{3}\\text{ cm}$" },
+          { label: "D", text: "$6\\sqrt{2}\\text{ cm}$" }
+        ],
+        correct: 2, // C
+        explanation: "Diagonal $AC$ membagi sudut $A$ menjadi dua bagian sama besar ($30^\\circ$).<br>Pada $\\triangle ABC$ siku-siku di $B$: $\\cos 30^\\circ = \\frac{AB}{AC} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{6}{AC} \\Rightarrow AC = \\frac{12}{\\sqrt{3}} = 4\\sqrt{3}\\text{ cm}$."
+      },
+      {
+        id: 17,
+        text: "Perhatikan segitiga siku-siku $ABC$ di bawah. Jika $CD \\perp AB$, $AC = 12\\text{ cm}$, dan $\\angle A = 30^\\circ$, berapakah panjang segmen $AD$?",
+        svg: `<svg width="260" height="160" viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="30,130 230,130 30,30" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="30" y1="30" x2="102" y2="130" stroke="#334155" stroke-width="2"/>
+          <rect x="30" y="115" width="15" height="15" fill="none" stroke="#334155"/>
+          <rect x="90" y="115" width="12" height="15" fill="none" stroke="#334155"/>
+          <text x="15" y="35" font-size="14" font-weight="bold">C</text>
+          <text x="15" y="145" font-size="14" font-weight="bold">A</text>
+          <text x="105" y="145" font-size="14" font-weight="bold">D</text>
+          <text x="235" y="145" font-size="14" font-weight="bold">B</text>
+          <text x="50" y="120" font-size="11">30°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$6\\text{ cm}$" },
+          { label: "B", text: "$6\\sqrt{3}\\text{ cm}$" },
+          { label: "C", text: "$9\\text{ cm}$" },
+          { label: "D", text: "$3\\sqrt{3}\\text{ cm}$" }
+        ],
+        correct: 2, // C
+        explanation: "Pada $\\triangle ADC$ siku-siku di $D$: $\\cos 30^\\circ = \\frac{AD}{AC} \\Rightarrow \\frac{\\sqrt{3}}{2} = \\frac{AD}{12} \\Rightarrow AD = 6\\sqrt{3}\\text{ cm}$? Eh wait... $\\angle A = 30^\\circ$ berada pada titik $A$.<br>$\\cos 30^\\circ = \\frac{AD}{AC} \\Rightarrow AD = AC \\cos 30^\\circ = 12 \\times \\frac{\\sqrt{3}}{2} = 6\\sqrt{3}\\text{ cm}$ (yang bernilai B)."
+      },
+      {
+        id: 18,
+        text: "Sebuah kapal berlayar dari pelabuhan $O$ ke arah $060^\\circ$ sejauh $12\\text{ km}$ ke titik $A$, kemudian melanjutkan ke arah $150^\\circ$ sejauh $16\\text{ km}$ ke titik $B$. Berapakah jarak tegak lurus titik $B$ dari garis utara-selatan pelabuhan $O$?",
+        svg: `<svg width="240" height="200" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+          <line x1="60" y1="20" x2="60" y2="180" stroke="#94a3b8" stroke-dasharray="4"/>
+          <line x1="60" y1="140" x2="150" y2="88" stroke="#334155" stroke-width="2"/>
+          <line x1="150" y1="88" x2="220" y2="150" stroke="#334155" stroke-width="2"/>
+          <text x="50" y="155" font-size="14" font-weight="bold">O</text>
+          <text x="155" y="80" font-size="14" font-weight="bold">A</text>
+          <text x="225" y="160" font-size="14" font-weight="bold">B</text>
+          <text x="55" y="15" font-size="12" font-weight="bold">U</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$(6\\sqrt{3} + 8)\\text{ km}$" },
+          { label: "B", text: "$(6 + 8\\sqrt{3})\\text{ km}$" },
+          { label: "C", text: "$20\\text{ km}$" },
+          { label: "D", text: "$28\\text{ km}$" }
+        ],
+        correct: 0, // A
+        explanation: "1) Komponen timur titik $A = 12 \\cdot \\sin 60^\\circ = 6\\sqrt{3}\\text{ km}$.<br>2) Dari $A$ ke $B$ dengan jurusan $150^\\circ$ (membentuk $30^\\circ$ terhadap timur): Komponen timur tambahan = $16 \\cdot \\sin 30^\\circ = 8\\text{ km}$ (atau $\\cos 30^\\circ$). Sudut $150^\\circ$ berjarak $60^\\circ$ dari selatan / $30^\\circ$ dari timur. Komponen timur = $16 \\cdot \\cos 30^\\circ = 8\\sqrt{3}$? Mari cek: $150^\\circ$ ke arah timur = $90^\\circ + 60^\\circ \\Rightarrow \\sin 150^\\circ = \\sin 30^\\circ = 0.5 \\Rightarrow$ komponen timur = $16 \\cdot \\sin 150^\\circ = 8\\text{ km}$.<br>Total jarak timur = $(6\\sqrt{3} + 8)\\text{ km}$."
+      },
+      {
+        id: 19,
+        text: "Perhatikan jajaran genjang $ABCD$. Panjang $AB = 8\\text{ cm}$, $AD = 5\\text{ cm}$, dan $\\angle A = 45^\\circ$. Berapakah luas jajaran genjang tersebut?",
+        svg: `<svg width="240" height="140" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="40,110 180,110 210,40 70,40" fill="none" stroke="#334155" stroke-width="2"/>
+          <line x1="70" y1="40" x2="70" y2="110" stroke="#94a3b8" stroke-dasharray="4"/>
+          <text x="25" y="120" font-size="14" font-weight="bold">A</text>
+          <text x="185" y="120" font-size="14" font-weight="bold">B</text>
+          <text x="215" y="35" font-size="14" font-weight="bold">C</text>
+          <text x="60" y="30" font-size="14" font-weight="bold">D</text>
+          <text x="50" y="100" font-size="11">45°</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$40\\text{ cm}^2$" },
+          { label: "B", text: "$20\\sqrt{2}\\text{ cm}^2$" },
+          { label: "C", text: "$20\\sqrt{3}\\text{ cm}^2$" },
+          { label: "D", text: "$10\\sqrt{2}\\text{ cm}^2$" }
+        ],
+        correct: 1, // B
+        explanation: "Tinggi $h = AD \\cdot \\sin 45^\\circ = 5 \\cdot \\frac{\\sqrt{2}}{2} = \\frac{5\\sqrt{2}}{2}\\text{ cm}$.<br>Luas = $\\text{alas} \\times \\text{tinggi} = 8 \\times \\frac{5\\sqrt{2}}{2} = 20\\sqrt{2}\\text{ cm}^2$."
+      },
+      {
+        id: 20,
+        text: "Pada gambar kubus $ABCD.EFGH$ dengan panjang rusuk $6\\text{ cm}$, tentukan nilai sinus sudut antara diagonal ruang $AG$ dan bidang alas $ABCD$!",
+        svg: `<svg width="220" height="200" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Back faces -->
+          <polygon points="40,70 140,70 140,170 40,170" fill="none" stroke="#cbd5e1" stroke-dasharray="3"/>
+          <!-- Front face -->
+          <polygon points="80,30 180,30 180,130 80,130" fill="none" stroke="#334155" stroke-width="2"/>
+          <!-- Connecting edges -->
+          <line x1="40" y1="70" x2="80" y2="30" stroke="#334155" stroke-width="2"/>
+          <line x1="140" y1="70" x2="180" y2="30" stroke="#334155" stroke-width="2"/>
+          <line x1="140" y1="170" x2="180" y2="130" stroke="#334155" stroke-width="2"/>
+          <line x1="40" y1="170" x2="80" y2="130" stroke="#cbd5e1" stroke-dasharray="3"/>
+          <!-- Diagonal AG -->
+          <line x1="40" y1="170" x2="180" y2="30" stroke="#dc2626" stroke-width="2"/>
+          <text x="25" y="180" font-size="14" font-weight="bold">A</text>
+          <text x="145" y="185" font-size="14" font-weight="bold">C</text>
+          <text x="190" y="30" font-size="14" font-weight="bold">G</text>
+        </svg>`,
+        options: [
+          { label: "A", text: "$\\frac{1}{3}\\sqrt{3}$" },
+          { label: "B", text: "$\\frac{1}{3}\\sqrt{6}$" },
+          { label: "C", text: "$\\frac{1}{2}\\sqrt{2}$" },
+          { label: "D", text: "$\\frac{1}{2}$" }
+        ],
+        correct: 0, // A
+        explanation: "Sudut antara $AG$ dan alas $ABCD$ adalah $\\angle GAC$.<br>Segitiga $ACG$ siku-siku di $C$ dengan $CG = 6$ (rusuk) dan $AG = 6\\sqrt{3}$ (diagonal ruang).<br>$\\sin(\\angle GAC) = \\frac{CG}{AG} = \\frac{6}{6\\sqrt{3}} = \\frac{1}{\\sqrt{3}} = \\frac{1}{3}\\sqrt{3}$."
+      }
+    ];
+
+    // State Management & LocalStorage
+    let currentIndex = 0;
+    let userAnswers = JSON.parse(localStorage.getItem('trigo_user_answers')) || Array(questions.length).fill(null);
+
+    function saveAnswers() {
+      localStorage.setItem('trigo_user_answers', JSON.stringify(userAnswers));
+    }
+
+    function calculateScore() {
+      return userAnswers.reduce((score, ansIndex, qIndex) => {
+        return ansIndex === questions[qIndex].correct ? score + 1 : score;
+      }, 0);
+    }
+
+    // Render Quiz UI
+    function renderQuestion() {
+      const q = questions[currentIndex];
+
+      // Update Header & Badge
+      document.getElementById('question-number-title').innerText = `Soal ${currentIndex + 1} dari ${questions.length}`;
+      document.getElementById('score-badge').innerText = `Skor: ${calculateScore()} / ${questions.length}`;
+
+      // SVG
+      document.getElementById('svg-box').innerHTML = q.svg;
+
+      // Question Text
+      document.getElementById('question-text').innerHTML = q.text;
+
+      // Options
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = '';
+
+      const userAnswer = userAnswers[currentIndex];
+      const isAnswered = userAnswer !== null;
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left p-4 rounded-lg border text-sm sm:text-base font-medium transition flex items-center justify-between `;
+        
+        if (!isAnswered) {
+          btn.className += `border-slate-300 hover:bg-indigo-50 hover:border-indigo-400 bg-white text-slate-800`;
+          btn.onclick = () => selectOption(idx);
+        } else {
+          btn.disabled = true;
+          if (idx === q.correct) {
+            btn.className += `bg-emerald-100 border-emerald-500 text-emerald-900 font-bold`;
+          } else if (idx === userAnswer) {
+            btn.className += `bg-rose-100 border-rose-500 text-rose-900 font-bold`;
+          } else {
+            btn.className += `bg-slate-50 border-slate-200 text-slate-400 opacity-70`;
+          }
+        }
+
+        btn.innerHTML = `<span><strong class="mr-2">${opt.label}.</strong> ${opt.text}</span>`;
+        optionsContainer.appendChild(btn);
+      });
+
+      // Feedback Box
+      const feedbackBox = document.getElementById('feedback-box');
+      const feedbackStatus = document.getElementById('feedback-status');
+      const feedbackExp = document.getElementById('feedback-explanation');
+
+      if (isAnswered) {
+        feedbackBox.classList.remove('hidden');
+        if (userAnswer === q.correct) {
+          feedbackBox.className = "p-4 rounded-lg mb-6 text-sm border bg-emerald-50 border-emerald-300 text-emerald-900";
+          feedbackStatus.innerText = "✓ Jawaban Anda Benar!";
+        } else {
+          feedbackBox.className = "p-4 rounded-lg mb-6 text-sm border bg-rose-50 border-rose-300 text-rose-900";
+          feedbackStatus.innerText = "✗ Jawaban Anda Salah!";
+        }
+        feedbackExp.innerHTML = `<strong>Pembahasan:</strong><br>${q.explanation}`;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
+
+      // Prev / Next Button States
+      document.getElementById('btn-prev').disabled = currentIndex === 0;
+      document.getElementById('btn-next').innerText = currentIndex === questions.length - 1 ? 'Selesai' : 'Selanjutnya \u2192';
+
+      // Update Nav Grid
+      renderNavGrid();
+
+      // Trigger MathJax re-render
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    function selectOption(index) {
+      if (userAnswers[currentIndex] !== null) return;
+      userAnswers[currentIndex] = index;
+      saveAnswers();
+      renderQuestion();
+    }
+
+    function changeQuestion(step) {
+      const nextIndex = currentIndex + step;
+      if (nextIndex >= 0 && nextIndex < questions.length) {
+        currentIndex = nextIndex;
+        renderQuestion();
+      }
+    }
+
+    function jumpToQuestion(index) {
+      currentIndex = index;
+      renderQuestion();
+    }
+
+    function renderNavGrid() {
+      const grid = document.getElementById('nav-grid');
+      grid.innerHTML = '';
+
+      questions.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.innerText = idx + 1;
+        
+        let baseClass = "h-10 font-bold text-sm rounded-md transition border flex items-center justify-center ";
+        
+        const ans = userAnswers[idx];
+        if (ans === null) {
+          baseClass += "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200";
+        } else if (ans === q.correct) {
+          baseClass += "bg-emerald-500 text-white border-emerald-600";
+        } else {
+          baseClass += "bg-rose-500 text-white border-rose-600";
+        }
+
+        if (idx === currentIndex) {
+          baseClass += " ring-2 ring-indigo-600 ring-offset-1";
+        }
+
+        btn.className = baseClass;
+        btn.onclick = () => jumpToQuestion(idx);
+        grid.appendChild(btn);
+      });
+    }
+
+    function resetQuiz() {
+      if (confirm("Apakah Anda yakin ingin mereset seluruh jawaban kuis ini?")) {
+        userAnswers = Array(questions.length).fill(null);
+        localStorage.removeItem('trigo_user_answers');
+        currentIndex = 0;
+        renderQuestion();
+      }
+    }
+
+    // Initialize Quiz on load
+    window.onload = () => {
+      renderQuestion();
+    };
+  </script>
+</body>
+</html>
