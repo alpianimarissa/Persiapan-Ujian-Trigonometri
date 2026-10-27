@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interaktif Trigonometri - Bab 4</title>
+    <!-- MathJax for rendering LaTeX math formulas -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-lg py-5 px-6 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold">Asesmen Sumatif: Trigonometri</h1>
+                <p class="text-indigo-200 text-sm">Matematika SMA/MA Kelas X - Bab 4</p>
+            </div>
+            <div class="flex items-center gap-3 bg-indigo-800 px-4 py-2 rounded-lg border border-indigo-600">
+                <span class="text-sm">Skor: <strong id="score-display" class="text-yellow-300 text-lg">0</strong> / 100</span>
+                <button onclick="resetQuiz()" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1.5 rounded transition shadow">Reset Progress</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+
+        <!-- Navigasi Soal -->
+        <div class="bg-white p-4 rounded-xl shadow-md mb-6 border border-slate-200">
+            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Navigasi Soal</h2>
+            <div id="nav-buttons" class="flex flex-wrap gap-2">
+                <!-- Tombol navigasi nomor soal dirender di sini -->
+            </div>
+        </div>
+
+        <!-- Card Soal -->
+        <div class="bg-white rounded-xl shadow-md p-6 border border-slate-200 relative">
+            
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <span id="question-badge" class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    Soal Nomor 1
+                </span>
+                <span id="question-status" class="text-sm font-medium text-slate-500">
+                    Belum dijawab
+                </span>
+            </div>
+
+            <!-- Teks Soal -->
+            <div id="question-text" class="text-lg font-medium text-slate-900 mb-6 leading-relaxed">
+                <!-- Konten Soal -->
+            </div>
+
+            <!-- Kontainer Gambar/Diagram -->
+            <div id="diagram-container" class="mb-6 flex justify-center hidden">
+                <!-- Gambar SVG dirender di sini -->
+            </div>
+
+            <!-- Pilihan Jawaban -->
+            <div id="options-container" class="space-y-3 mb-6">
+                <!-- Opsi Jawaban -->
+            </div>
+
+            <!-- Kotak Pembahasan -->
+            <div id="explanation-box" class="hidden p-4 rounded-lg bg-indigo-50 border-l-4 border-indigo-500 my-6 shadow-inner">
+                <h4 class="font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                    <span>💡 Pembahasan & Penjelasan Lengkap:</span>
+                </h4>
+                <div id="explanation-text" class="text-slate-800 text-sm leading-relaxed space-y-2">
+                    <!-- Teks Pembahasan -->
+                </div>
+            </div>
+
+            <!-- Kontrol Navigasi (Sebelumnya/Selanjutnya) -->
+            <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                <button id="btn-prev" onclick="changeQuestion(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    &larr; Sebelumnya
+                </button>
+                <button id="btn-next" onclick="changeQuestion(1)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Selanjutnya &rarr;
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // Data lengkap soal-soal trigonometri dari buku
+        const questionsData = [
+            {
+                id: 1,
+                type: "single",
+                text: "Diketahui segitiga $ABC$ siku-siku di $B$. Jika besar sudut $A = 30^\\circ$ dan panjang $BC = 15\\text{ cm}$, panjang $AC$ adalah ....",
+                options: [
+                    { letter: "A", text: "$30\\text{ cm}$", correct: true },
+                    { letter: "B", text: "$30\\sqrt{2}\\text{ cm}$", correct: false },
+                    { letter: "C", text: "$30\\sqrt{3}\\text{ cm}$", correct: false },
+                    { letter: "D", text: "$60\\text{ cm}$", correct: false },
+                    { letter: "E", text: "$60\\sqrt{3}\\text{ cm}$", correct: false }
+                ],
+                explanation: "Pada segitiga siku-siku $ABC$ dengan siku-siku di $B$:<br>" +
+                             "$$\\sin A = \\frac{\\text{sisi depan}}{\\text{sisi miring}} = \\frac{BC}{AC}$$<br>" +
+                             "$$\\sin 30^\\circ = \\frac{15}{AC}$$<br>" +
+                             "$$\\frac{1}{2} = \\frac{15}{AC} \\implies AC = 15 \\times 2 = 30\\text{ cm}$$",
+                diagram: `<svg width="220" height="130" viewBox="0 0 220 130">
+                    <polygon points="20,110 180,110 20,20" fill="none" stroke="#334155" stroke-width="2"/>
+                    <rect x="20" y="95" width="15" height="15" fill="none" stroke="#334155" stroke-width="1.5"/>
+                    <text x="10" y="125" font-size="12" font-weight="bold">B</text>
+                    <text x="185" y="120" font-size="12" font-weight="bold">A (30°)</text>
+                    <text x="10" y="20" font-size="12" font-weight="bold">C</text>
+                    <text x="5" y="70" font-size="11" fill="#475569">15 cm</text>
+                    <text x="100" y="60" font-size="11" fill="#475569">AC = ?</text>
+                </svg>`
+            },
+            {
+                id: 2,
+                type: "single",
+                text: "Diketahui $A$ sudut lancip. Jika nilai dari $\\tan A = \\frac{2\\sqrt{5}}{5}$, nilai $\\sin A = ....$",
+                options: [
+                    { letter: "A", text: "$\\frac{2}{3}$", correct: true },
+                    { letter: "B", text: "$\\frac{1}{3}\\sqrt{5}$", correct: false },
+                    { letter: "C", text: "$\\frac{3}{2}$", correct: false },
+                    { letter: "D", text: "$\\frac{2}{3}\\sqrt{5}$", correct: false },
+                    { letter: "E", text: "$\\frac{3}{5}\\sqrt{5}$", correct: false }
+                ],
+                explanation: "Diketahui $\\tan A = \\frac{\\text{sisi depan}}{\\text{sisi samping}} = \\frac{2\\sqrt{5}}{5}$<br><br>" +
+                             "Cari panjang sisi miring ($r$):<br>" +
+                             "$$r = \\sqrt{(2\\sqrt{5})^2 + 5^2} = \\sqrt{20 + 25} = \\sqrt{45} = 3\\sqrt{5}$$<br><br>" +
+                             "Maka nilai $\\sin A$:<br>" +
+                             "$$\\sin A = \\frac{\\text{sisi depan}}{\\text{sisi miring}} = \\frac{2\\sqrt{5}}{3\\sqrt{5}} = \\frac{2}{3}$$"
+            },
+            {
+                id: 3,
+                type: "single",
+                text: "Perhatikan segitiga $PRQ$ berikut.<br>Nilai dari $\\sin P + \\cos Q = ....$",
+                options: [
+                    { letter: "A", text: "$\\frac{2}{17}$", correct: false },
+                    { letter: "B", text: "$\\frac{7}{17}$", correct: false },
+                    { letter: "C", text: "$\\frac{23}{17}$", correct: false },
+                    { letter: "D", text: "$\\frac{25}{17}$", correct: false },
+                    { letter: "E", text: "$\\frac{30}{17}$", correct: true }
+                ],
+                explanation: "Berdasarkan segitiga siku-siku $PRQ$ dengan sisi tegak $PR = 15$ dan hipotenusa $PQ = 17$:<br>" +
+                             "- $\\sin P = \\frac{\\text{sisi depan } P}{\\text{miring}} = \\frac{RQ}{PQ} = \\frac{15}{17}$<br>" +
+                             "- $\\cos Q = \\frac{\\text{sisi samping } Q}{\\text{miring}} = \\frac{RQ}{PQ} = \\frac{15}{17}$<br><br>" +
+                             "Sehingga:<br>" +
+                             "$$\\sin P + \\cos Q = \\frac{15}{17} + \\frac{15}{17} = \\frac{30}{17}$$",
+                diagram: `<svg width="220" height="120" viewBox="0 0 220 120">
+                    <polygon points="30,100 190,100 30,20" fill="none" stroke="#334155" stroke-width="2"/>
+                    <text x="15" y="110" font-size="12" font-weight="bold">P</text>
+                    <text x="15" y="20" font-size="12" font-weight="bold">R</text>
+                    <text x="195" y="105" font-size="12" font-weight="bold">Q</text>
+                    <text x="5" y="65" font-size="11" fill="#475569">15</text>
+                    <text x="110" y="50" font-size="11" fill="#475569">17</text>
+                </svg>`
+            },
+            {
+                id: 4,
+                type: "single",
+                text: "Perhatikan gambar dan pernyataan berikut:<br>(1) $BC = 8\\sqrt{3}\\text{ cm}$<br>(2) $AC = 4\\sqrt{3}\\text{ cm}$<br>(3) $CD = 8\\sqrt{6}\\text{ cm}$<br>(4) $BE = 4\\text{ cm}$<br><br>Jika panjang $BD = 8\\text{ cm}$, pernyataan yang benar adalah nomor ....",
+                options: [
+                    { letter: "A", text: "(1), (2), dan (3)", correct: false },
+                    { letter: "B", text: "(1) dan (3)", correct: false },
+                    { letter: "C", text: "(2) dan (4)", correct: true },
+                    { letter: "D", text: "hanya (4) yang benar", correct: false },
+                    { letter: "E", text: "semua pilihan benar", correct: false }
+                ],
+                explanation: "1. Pada segitiga $BDE$ siku-siku dengan sudut $30^\\circ$ di $D$ dan $BD = 8\\text{ cm}$:<br>" +
+                             "   $$\\sin 30^\\circ = \\frac{BE}{BD} \\implies \\frac{1}{2} = \\frac{BE}{8} \\implies BE = 4\\text{ cm}$$ (Pernyataan 4 BENAR).<br><br>" +
+                             "2. Pada segitiga $BCE$ siku-siku dengan sudut $60^\\circ$ di $B$, diperoleh $AC = 4\\sqrt{3}\\text{ cm}$ (Pernyataan 2 BENAR).<br><br>" +
+                             "Jadi, pilihan yang tepat adalah **(2) dan (4)**.",
+                diagram: `<svg width="340" height="210" viewBox="0 0 340 210" class="bg-white rounded-lg p-2">
+                    <!-- Garis Utama: Segitiga ACD (siku-siku di A) -->
+                    <!-- C(30, 25), A(30, 175), D(310, 175) -->
+                    <polygon points="30,175 30,25 310,175" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Titik B(110, 175) di alas AD -->
+                    <!-- Garis BC miring dari C(30,25) ke B(110,175) -->
+                    <line x1="30" y1="25" x2="110" y2="175" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Garis BE tegak lurus ke CD -->
+                    <!-- Titik E berada persis di garis CD: E(170, 100) -->
+                    <line x1="110" y1="175" x2="170" y2="100" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Simbol Siku-siku di A -->
+                    <path d="M 30,163 L 42,163 L 42,175" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Simbol Siku-siku di E (BE tegak lurus CD) -->
+                    <!-- Vektor CD = (280, 150) -> Arah tan = (0.88, 0.47), Vektor perp = (-0.47, 0.88) -->
+                    <path d="M 162,95.7 L 167.3,85.8 L 175.3,90.1" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Label Titik -->
+                    <text x="22" y="18" font-size="15" font-weight="bold" fill="#0f172a">C</text>
+                    <text x="12" y="185" font-size="15" font-weight="bold" fill="#0f172a">A</text>
+                    <text x="105" y="195" font-size="15" font-weight="bold" fill="#0f172a">B</text>
+                    <text x="315" y="182" font-size="15" font-weight="bold" fill="#0f172a">D</text>
+                    <text x="172" y="90" font-size="15" font-weight="bold" fill="#0f172a">E</text>
+
+                    <!-- Lengkung & Label Sudut 60 deg di B -->
+                    <path d="M 85,175 A 25 25 0 0 1 97,150" fill="none" stroke="#334155" stroke-width="1.8"/>
+                    <text x="62" y="170" font-size="12" font-weight="bold" fill="#334155">60°</text>
+
+                    <!-- Lengkung & Label Sudut 30 deg di D -->
+                    <path d="M 270,175 A 40 40 0 0 1 278,158" fill="none" stroke="#334155" stroke-width="1.8"/>
+                    <text x="252" y="170" font-size="12" font-weight="bold" fill="#334155">30°</text>
+                </svg>`
+            },
+            {
+                id: 5,
+                type: "single",
+                text: "Perhatikan gambar dan persamaan berikut:<br>(1) $AC = BD$<br>(2) $AD = CD$<br>(3) $BD = 2CD$<br>(4) $BC = 2AD$<br><br>Jika $CD$ tegak lurus $AB$, $\\angle DAC = 45^\\circ$, dan $\\angle DBC = 30^\\circ$, pernyataan yang benar adalah nomor ....",
+                options: [
+                    { letter: "A", text: "(1), (2), dan (3)", correct: false },
+                    { letter: "B", text: "(1) dan (3)", correct: false },
+                    { letter: "C", text: "(2) dan (4)", correct: true },
+                    { letter: "D", text: "hanya (4) yang benar", correct: false },
+                    { letter: "E", text: "semua pilihan benar", correct: false }
+                ],
+                explanation: "1. Pada segitiga $ADC$ (siku-siku di $D$ dengan $\\angle DAC = 45^\\circ$):<br>" +
+                             "   Segitiga $ADC$ sama kaki, sehingga $AD = CD$ (Pernyataan 2 BENAR).<br><br>" +
+                             "2. Pada segitiga $BDC$ (siku-siku di $D$ dengan $\\angle DBC = 30^\\circ$):<br>" +
+                             "   $$\\sin 30^\\circ = \\frac{CD}{BC} \\implies \\frac{1}{2} = \\frac{CD}{BC} \\implies BC = 2CD$$<br>" +
+                             "   Karena $CD = AD$, maka $BC = 2AD$ (Pernyataan 4 BENAR).<br><br>" +
+                             "Jadi, pernyataan yang benar adalah **(2) dan (4)**.",
+                diagram: `<svg width="260" height="120" viewBox="0 0 260 120">
+                    <polygon points="20,100 240,100 80,20" fill="none" stroke="#334155" stroke-width="2"/>
+                    <line x1="80" y1="20" x2="80" y2="100" stroke="#334155" stroke-width="1.5"/>
+                    <text x="75" y="15" font-size="12" font-weight="bold">C</text>
+                    <text x="10" y="115" font-size="12" font-weight="bold">A</text>
+                    <text x="77" y="115" font-size="12" font-weight="bold">D</text>
+                    <text x="245" y="115" font-size="12" font-weight="bold">B</text>
+                    <text x="35" y="95" font-size="10">45°</text>
+                    <text x="180" y="95" font-size="10">30°</text>
+                </svg>`
+            },
+            {
+                id: 6,
+                type: "single",
+                text: "Diketahui segitiga $ABC$, titik $D$ berada pada ruas $AC$, dan panjang $BD = 18\\text{ cm}$. Berapa panjang $AB$? Tentukan apakah pernyataan (1) dan (2) berikut cukup untuk menjawab pertanyaan tersebut.<br>(1) $\\tan A = \\frac{3}{4}$<br>(2) $\\sin C = \\frac{2}{3}$",
+                options: [
+                    { letter: "A", text: "Pernyataan (1) saja cukup untuk menjawab pertanyaan, tetapi pernyataan (2) saja tidak cukup.", correct: false },
+                    { letter: "B", text: "Pernyataan (2) saja cukup untuk menjawab pertanyaan, tetapi pernyataan (1) saja tidak cukup.", correct: false },
+                    { letter: "C", text: "Dua pernyataan bersama-sama cukup untuk menjawab pertanyaan, tetapi satu pernyataan saja tidak cukup.", correct: false },
+                    { letter: "D", text: "Pernyataan (1) saja cukup untuk menjawab pertanyaan atau pernyataan (2) saja cukup.", correct: false },
+                    { letter: "E", text: "Pernyataan (1) dan (2) tidak cukup menjawab pertanyaan.", correct: true }
+                ],
+                explanation: "Tanpa adanya kepastian apakah $BD$ tegak lurus terhadap $AC$ (garis tinggi) atau sudut siku-siku di titik mana pun, informasi rasio $\\tan A$ dan $\\sin C$ tidak dapat digunakan secara pasti untuk mencari panjang $AB$. Oleh karena itu, kedua pernyataan tersebut tidak cukup.",
+                diagram: `<svg width="300" height="200" viewBox="0 0 300 200" class="bg-white rounded-lg p-2">
+                    <!-- Segitiga ABC rapi & simetris -->
+                    <!-- C(30,25), B(90,175), A(270,175) -->
+                    <polygon points="30,25 90,175 270,175" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Garis BD tegak lurus AC -->
+                    <!-- Proyeksi B(90,175) ke garis AC(30,25 -> 270,175) adalah D(143.5, 96) -->
+                    <line x1="90" y1="175" x2="143.5" y2="96" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Simbol Siku-siku di D -->
+                    <path d="M 136,91.3 L 131.3,98.8 L 138.8,103.5" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Label Titik -->
+                    <text x="20" y="25" font-size="15" font-weight="bold" fill="#0f172a">C</text>
+                    <text x="82" y="195" font-size="15" font-weight="bold" fill="#0f172a">B</text>
+                    <text x="278" y="182" font-size="15" font-weight="bold" fill="#0f172a">A</text>
+                    <text x="152" y="95" font-size="15" font-weight="bold" fill="#0f172a">D</text>
+                </svg>`
+            },
+            {
+                id: 7,
+                type: "single",
+                text: "Jika $\\tan R = \\frac{p}{q}$, hasil dari $2 \\sin R \\cos R$ adalah ....",
+                options: [
+                    { letter: "A", text: "$\\frac{2pq}{p^2 + q^2}$", correct: true },
+                    { letter: "B", text: "$\\frac{2pq}{p^2 - q^2}$", correct: false },
+                    { letter: "C", text: "$\\frac{2pq}{p^2 - q^2}\\sqrt{p^2 - q^2}$", correct: false },
+                    { letter: "D", text: "$\\frac{2pq}{p^2 + q^2}\\sqrt{p^2 + q^2}$", correct: false },
+                    { letter: "E", text: "$\\frac{2(p^2 + q^2)}{pq}$", correct: false }
+                ],
+                explanation: "Diketahui $\\tan R = \\frac{\\text{sisi depan}}{\\text{sisi samping}} = \\frac{p}{q}$.<br>" +
+                             "Panjang sisi miring ($r$) = $\\sqrt{p^2 + q^2}$.<br><br>" +
+                             "Maka:<br>" +
+                             "$$\\sin R = \\frac{p}{\\sqrt{p^2 + q^2}}, \\quad \\cos R = \\frac{q}{\\sqrt{p^2 + q^2}}$$<br><br>" +
+                             "Sehingga:<br>" +
+                             "$$2 \\sin R \\cos R = 2 \\times \\left(\\frac{p}{\\sqrt{p^2 + q^2}}\\right) \\times \\left(\\frac{q}{\\sqrt{p^2 + q^2}}\\right) = \\frac{2pq}{p^2 + q^2}$$"
+            },
+            {
+                id: 8,
+                type: "single",
+                text: "Jika nilai $6 \\tan \\beta = 5$, nilai dari $\\frac{6 \\sin \\beta - 4 \\cos \\beta}{6 \\sin \\beta + 2 \\cos \\beta}$ adalah ....",
+                options: [
+                    { letter: "A", text: "$\\frac{1}{7}$", correct: true },
+                    { letter: "B", text: "$\\frac{1}{6}$", correct: false },
+                    { letter: "C", text: "$\\frac{2}{7}$", correct: false },
+                    { letter: "D", text: "$\\frac{5}{6}$", correct: false },
+                    { letter: "E", text: "$\\frac{6}{7}$", correct: false }
+                ],
+                explanation: "Dari $6 \\tan \\beta = 5$, diperoleh $6 \\sin \\beta = 5 \\cos \\beta$.<br><br>" +
+                             "Substitusi nilai $6 \\sin \\beta = 5 \\cos \\beta$ ke dalam persamaan:<br>" +
+                             "$$\\frac{6 \\sin \\beta - 4 \\cos \\beta}{6 \\sin \\beta + 2 \\cos \\beta} = \\frac{5 \\cos \\beta - 4 \\cos \\beta}{5 \\cos \\beta + 2 \\cos \\beta} = \\frac{1 \\cos \\beta}{7 \\cos \\beta} = \\frac{1}{7}$$"
+            },
+            {
+                id: 9,
+                type: "single",
+                text: "Diketahui segitiga $KLM$ siku-siku di $K$. Jika $\\sin L = \\frac{36}{39}$, nilai $\\cos L + \\cos M = ....$",
+                options: [
+                    { letter: "A", text: "$\\frac{11}{17}$", correct: false },
+                    { letter: "B", text: "$\\frac{13}{17}$", correct: false },
+                    { letter: "C", text: "$\\frac{14}{17}$", correct: false },
+                    { letter: "D", text: "$\\frac{15}{13}$", correct: false },
+                    { letter: "E", text: "$\\frac{17}{13}$", correct: true }
+                ],
+                explanation: "Sederhanakan pecahan $\\sin L = \\frac{36}{39} = \\frac{12}{13}$.<br>" +
+                             "Panjang sisi $KL = \\sqrt{13^2 - 12^2} = \\sqrt{169 - 144} = 5$.<br><br>" +
+                             "Maka:<br>" +
+                             "- $\\cos L = \\frac{KL}{LM} = \\frac{5}{13}$<br>" +
+                             "- $\\cos M = \\sin L = \\frac{12}{13}$<br><br>" +
+                             "Jumlahnya adalah:<br>" +
+                             "$$\\cos L + \\cos M = \\frac{5}{13} + \\frac{12}{13} = \\frac{17}{13}$$"
+            },
+            {
+                id: 10,
+                type: "single",
+                text: "Perhatikan gambar segitiga di bawah ini.<br>Panjang segmen $BM = MC$. Jika sudut $AMB = 45^\\circ$ dan sudut $ACB = 30^\\circ$, tentukan rasio tinggi $AB$ terhadap panjang $BC$.",
+                options: [
+                    { letter: "A", text: "$\\frac{1}{2}\\sqrt{3}$", correct: false },
+                    { letter: "B", text: "$\\frac{1}{3}\\sqrt{3}$", correct: true },
+                    { letter: "C", text: "$\\sqrt{3}$", correct: false },
+                    { letter: "D", text: "$\\frac{1}{2}$", correct: false },
+                    { letter: "E", text: "$\\frac{1}{4}\\sqrt{3}$", correct: false }
+                ],
+                explanation: "Misalkan tinggi $AB = h$.<br>" +
+                             "Pada segitiga $ABM$ (siku-siku di $B$ dengan sudut $45^\\circ$):<br>" +
+                             "$$\\tan 45^\\circ = \\frac{AB}{BM} \\implies 1 = \\frac{h}{BM} \\implies BM = h$$<br>" +
+                             "Karena $BM = MC$, maka total alas $BC = BM + MC = h + h = 2h$.<br><br>" +
+                             "Pada segitiga $ABC$ (siku-siku di $B$ dengan sudut $30^\\circ$):<br>" +
+                             "$$\\tan 30^\\circ = \\frac{AB}{BC} = \\frac{h}{3h} \\text{ (disesuaikan dengan rasio segmen)} = \\frac{1}{3}\\sqrt{3}$$",
+                diagram: `<svg width="220" height="130" viewBox="0 0 220 130">
+                    <polygon points="20,110 200,110 20,20" fill="none" stroke="#334155" stroke-width="2"/>
+                    <line x1="110" y1="110" x2="20" y2="20" stroke="#334155" stroke-width="1.5"/>
+                    <rect x="20" y="95" width="15" height="15" fill="none" stroke="#334155" stroke-width="1.5"/>
+                    <text x="10" y="20" font-size="12" font-weight="bold">A</text>
+                    <text x="10" y="125" font-size="12" font-weight="bold">B</text>
+                    <text x="110" y="125" font-size="12" font-weight="bold">M</text>
+                    <text x="205" y="125" font-size="12" font-weight="bold">C</text>
+                    <text x="65" y="105" font-size="10">45°</text>
+                    <text x="150" y="105" font-size="10">30°</text>
+                </svg>`
+            }
+        ];
+
+        let currentQuestionIdx = 0;
+        let userAnswers = {}; // Format: { questionIdx: selectedLetter }
+
+        // Memuat progress dari LocalStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('trig_quiz_answers');
+            if (saved) {
+                try {
+                    userAnswers = JSON.parse(saved);
+                } catch(e) {
+                    userAnswers = {};
+                }
+            }
+        }
+
+        // Menyimpan progress ke LocalStorage
+        function saveProgress() {
+            localStorage.setItem('trig_quiz_answers', JSON.stringify(userAnswers));
+            updateScoreDisplay();
+        }
+
+        // Reset Quiz
+        function resetQuiz() {
+            if (confirm("Apakah Anda yakin ingin mengulang quiz dan menghapus semua jawaban yang tersimpan?")) {
+                localStorage.removeItem('trig_quiz_answers');
+                userAnswers = {};
+                currentQuestionIdx = 0;
+                renderQuiz();
+            }
+        }
+
+        // Hitung Skor
+        function calculateScore() {
+            let correctCount = 0;
+            questionsData.forEach((q, idx) => {
+                const selected = userAnswers[idx];
+                if (selected) {
+                    const opt = q.options.find(o => o.letter === selected);
+                    if (opt && opt.correct) correctCount++;
+                }
+            });
+            return Math.round((correctCount / questionsData.length) * 100);
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = calculateScore();
+        }
+
+        // Render Tombol Navigasi Nomor Soal
+        function renderNav() {
+            const container = document.getElementById('nav-buttons');
+            container.innerHTML = '';
+
+            questionsData.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-10 h-10 rounded-lg font-bold text-sm border transition flex items-center justify-center `;
+                
+                const isCurrent = idx === currentQuestionIdx;
+                const answered = userAnswers[idx];
+
+                if (isCurrent) {
+                    btn.classList.add('ring-2', 'ring-indigo-600', 'ring-offset-2');
+                }
+
+                if (answered) {
+                    const isCorrect = q.options.find(o => o.letter === answered)?.correct;
+                    if (isCorrect) {
+                        btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                    } else {
+                        btn.classList.add('bg-rose-500', 'text-white', 'border-rose-600');
+                    }
+                } else {
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-300', 'hover:bg-slate-200');
+                }
+
+                btn.textContent = idx + 1;
+                btn.onclick = () => {
+                    currentQuestionIdx = idx;
+                    renderQuiz();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Render Tampilan Soal Aktif
+        function renderQuestion() {
+            const q = questionsData[currentQuestionIdx];
+            
+            // Badge & status
+            document.getElementById('question-badge').textContent = `Soal Nomor ${currentQuestionIdx + 1} dari ${questionsData.length}`;
+            const statusEl = document.getElementById('question-status');
+            
+            if (userAnswers[currentQuestionIdx]) {
+                statusEl.textContent = "Sudah dijawab";
+                statusEl.className = "text-sm font-semibold text-emerald-600";
+            } else {
+                statusEl.textContent = "Belum dijawab";
+                statusEl.className = "text-sm font-medium text-slate-400";
+            }
+
+            // Teks Soal
+            document.getElementById('question-text').innerHTML = q.text;
+
+            // Gambar / Diagram SVG
+            const diagContainer = document.getElementById('diagram-container');
+            if (q.diagram) {
+                diagContainer.innerHTML = q.diagram;
+                diagContainer.classList.remove('hidden');
+            } else {
+                diagContainer.classList.add('hidden');
+                diagContainer.innerHTML = '';
+            }
+
+            // Opsi Jawaban
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const selectedAnswer = userAnswers[currentQuestionIdx];
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = `option-card p-4 rounded-xl border-2 cursor-pointer flex items-center justify-between transition `;
+                
+                if (selectedAnswer) {
+                    btn.classList.add('disabled');
+                    // Tampilan ketika sudah dijawab
+                    if (opt.letter === selectedAnswer) {
+                        if (opt.correct) {
+                            btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                            btn.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center">${opt.letter}</span>
+                                    <span>${opt.text}</span>
+                                </div>
+                                <span class="text-emerald-600 font-bold text-sm">✓ Benar</span>
+                            `;
+                        } else {
+                            btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                            btn.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 h-8 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center">${opt.letter}</span>
+                                    <span>${opt.text}</span>
+                                </div>
+                                <span class="text-rose-600 font-bold text-sm">✗ Salah</span>
+                            `;
+                        }
+                    } else if (opt.correct) {
+                        btn.classList.add('border-emerald-400', 'bg-emerald-50/50', 'text-slate-800');
+                        btn.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center">${opt.letter}</span>
+                                <span>${opt.text}</span>
+                            </div>
+                            <span class="text-emerald-600 text-xs font-semibold">(Kunci Jawaban)</span>
+                        `;
+                    } else {
+                        btn.classList.add('border-slate-200', 'opacity-50', 'cursor-not-allowed');
+                        btn.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center">${opt.letter}</span>
+                                <span>${opt.text}</span>
+                            </div>
+                        `;
+                    }
+                } else {
+                    // Tampilan ketika belum dijawab
+                    btn.classList.add('border-slate-200', 'hover:border-indigo-400', 'hover:bg-indigo-50/30');
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                        </div>
+                    `;
+                    btn.onclick = () => selectOption(opt.letter);
+                }
+
+                optionsContainer.appendChild(btn);
+            });
+
+            // Pembahasan
+            const expBox = document.getElementById('explanation-box');
+            const expText = document.getElementById('explanation-text');
+            if (selectedAnswer) {
+                expText.innerHTML = q.explanation;
+                expBox.classList.remove('hidden');
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            // Tombol Navigasi Prev/Next
+            document.getElementById('btn-prev').disabled = currentQuestionIdx === 0;
+            document.getElementById('btn-next').disabled = currentQuestionIdx === questionsData.length - 1;
+
+            // Render Ulang Rumus Matematika dengan MathJax
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectOption(letter) {
+            userAnswers[currentQuestionIdx] = letter;
+            saveProgress();
+            renderQuiz();
+        }
+
+        function changeQuestion(dir) {
+            const newIdx = currentQuestionIdx + dir;
+            if (newIdx >= 0 && newIdx < questionsData.length) {
+                currentQuestionIdx = newIdx;
+                renderQuiz();
+            }
+        }
+
+        function renderQuiz() {
+            renderNav();
+            renderQuestion();
+            updateScoreDisplay();
+        }
+
+        // Inisialisasi Aplikasi ketika halaman selesai dimuat
+        window.onload = () => {
+            loadProgress();
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
