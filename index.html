@@ -190,18 +190,40 @@
                              "   $$\\sin 30^\\circ = \\frac{BE}{BD} \\implies \\frac{1}{2} = \\frac{BE}{8} \\implies BE = 4\\text{ cm}$$ (Pernyataan 4 BENAR).<br><br>" +
                              "2. Pada segitiga $BCE$ siku-siku dengan sudut $60^\\circ$ di $B$, diperoleh $AC = 4\\sqrt{3}\\text{ cm}$ (Pernyataan 2 BENAR).<br><br>" +
                              "Jadi, pilihan yang tepat adalah **(2) dan (4)**.",
-                diagram: `<svg width="260" height="130" viewBox="0 0 260 130">
-                    <polygon points="20,110 240,110 20,20" fill="none" stroke="#334155" stroke-width="2"/>
-                    <line x1="20" y1="110" x2="120" y2="110" stroke="#334155" stroke-width="2"/>
-                    <line x1="80" y1="110" x2="80" y2="65" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3"/>
-                    <line x1="20" y1="20" x2="120" y2="110" stroke="#334155" stroke-width="1.5"/>
-                    <text x="10" y="20" font-size="12" font-weight="bold">C</text>
-                    <text x="10" y="125" font-size="12" font-weight="bold">A</text>
-                    <text x="118" y="125" font-size="12" font-weight="bold">B</text>
-                    <text x="242" y="125" font-size="12" font-weight="bold">D</text>
-                    <text x="82" y="60" font-size="12" font-weight="bold">E</text>
-                    <text x="30" y="100" font-size="10">60°</text>
-                    <text x="180" y="105" font-size="10">30°</text>
+                diagram: `<svg width="340" height="210" viewBox="0 0 340 210" class="bg-white rounded-lg p-2">
+                    <!-- Garis Utama: Segitiga ACD (siku-siku di A) -->
+                    <!-- C(30, 25), A(30, 175), D(310, 175) -->
+                    <polygon points="30,175 30,25 310,175" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Titik B(110, 175) di alas AD -->
+                    <!-- Garis BC miring dari C(30,25) ke B(110,175) -->
+                    <line x1="30" y1="25" x2="110" y2="175" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Garis BE tegak lurus ke CD -->
+                    <!-- Titik E berada persis di garis CD: E(170, 100) -->
+                    <line x1="110" y1="175" x2="170" y2="100" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Simbol Siku-siku di A -->
+                    <path d="M 30,163 L 42,163 L 42,175" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Simbol Siku-siku di E (BE tegak lurus CD) -->
+                    <!-- Vektor CD = (280, 150) -> Arah tan = (0.88, 0.47), Vektor perp = (-0.47, 0.88) -->
+                    <path d="M 162,95.7 L 167.3,85.8 L 175.3,90.1" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Label Titik -->
+                    <text x="22" y="18" font-size="15" font-weight="bold" fill="#0f172a">C</text>
+                    <text x="12" y="185" font-size="15" font-weight="bold" fill="#0f172a">A</text>
+                    <text x="105" y="195" font-size="15" font-weight="bold" fill="#0f172a">B</text>
+                    <text x="315" y="182" font-size="15" font-weight="bold" fill="#0f172a">D</text>
+                    <text x="172" y="90" font-size="15" font-weight="bold" fill="#0f172a">E</text>
+
+                    <!-- Lengkung & Label Sudut 60 deg di B -->
+                    <path d="M 85,175 A 25 25 0 0 1 97,150" fill="none" stroke="#334155" stroke-width="1.8"/>
+                    <text x="62" y="170" font-size="12" font-weight="bold" fill="#334155">60°</text>
+
+                    <!-- Lengkung & Label Sudut 30 deg di D -->
+                    <path d="M 270,175 A 40 40 0 0 1 278,158" fill="none" stroke="#334155" stroke-width="1.8"/>
+                    <text x="252" y="170" font-size="12" font-weight="bold" fill="#334155">30°</text>
                 </svg>`
             },
             {
@@ -244,13 +266,23 @@
                     { letter: "E", text: "Pernyataan (1) dan (2) tidak cukup menjawab pertanyaan.", correct: true }
                 ],
                 explanation: "Tanpa adanya kepastian apakah $BD$ tegak lurus terhadap $AC$ (garis tinggi) atau sudut siku-siku di titik mana pun, informasi rasio $\\tan A$ dan $\\sin C$ tidak dapat digunakan secara pasti untuk mencari panjang $AB$. Oleh karena itu, kedua pernyataan tersebut tidak cukup.",
-                diagram: `<svg width="220" height="120" viewBox="0 0 220 120">
-                    <polygon points="20,100 200,100 60,20" fill="none" stroke="#334155" stroke-width="2"/>
-                    <line x1="60" y1="20" x2="110" y2="100" stroke="#334155" stroke-width="1.5"/>
-                    <text x="55" y="15" font-size="12" font-weight="bold">C</text>
-                    <text x="10" y="115" font-size="12" font-weight="bold">A</text>
-                    <text x="110" y="115" font-size="12" font-weight="bold">D</text>
-                    <text x="205" y="115" font-size="12" font-weight="bold">B</text>
+                diagram: `<svg width="300" height="200" viewBox="0 0 300 200" class="bg-white rounded-lg p-2">
+                    <!-- Segitiga ABC rapi & simetris -->
+                    <!-- C(30,25), B(90,175), A(270,175) -->
+                    <polygon points="30,25 90,175 270,175" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <!-- Garis BD tegak lurus AC -->
+                    <!-- Proyeksi B(90,175) ke garis AC(30,25 -> 270,175) adalah D(143.5, 96) -->
+                    <line x1="90" y1="175" x2="143.5" y2="96" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round"/>
+
+                    <!-- Simbol Siku-siku di D -->
+                    <path d="M 136,91.3 L 131.3,98.8 L 138.8,103.5" fill="none" stroke="#1e293b" stroke-width="1.8"/>
+
+                    <!-- Label Titik -->
+                    <text x="20" y="25" font-size="15" font-weight="bold" fill="#0f172a">C</text>
+                    <text x="82" y="195" font-size="15" font-weight="bold" fill="#0f172a">B</text>
+                    <text x="278" y="182" font-size="15" font-weight="bold" fill="#0f172a">A</text>
+                    <text x="152" y="95" font-size="15" font-weight="bold" fill="#0f172a">D</text>
                 </svg>`
             },
             {
